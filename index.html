@@ -1,85 +1,310 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta charset="utf-8">
-  <title>Email Generator</title>
+  <meta charset="utf-8"/>
+  <title>Trình tạo email ngẫu nhiên</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; max-width: 600px; }
+    textarea, select, input, button { padding: 10px; font-size: 16px; }
+    textarea { height: 40px; width: 100%; margin-top: 10px; }
+    .note { color: #888; font-size: 14px; margin-bottom: 10px; }
+    .section { margin-top: 30px; }
+    .flex-row { display: flex; align-items: center; gap: 10px; margin-top: 10px; }
+    .flex-col { display: flex; flex-direction: column; gap: 10px; }
+    .full-width { width: 100%; }
+    .button-wide { width: 100%; height: 50px; }
+    .textarea-small { height: 30px; }
+  </style>
 </head>
 <body>
-  <h2>Generator Email theo tên + hậu tố</h2>
-  <label>Họ tên (vd: Anhleon):</label><br>
-  <input type="text" id="name"><br><br>
+  <h2>Trình tạo Email Ngẫu nhiên</h2>
 
-  <label>Số lượng email muốn tạo:</label><br>
-  <input type="number" id="count" value="10"><br><br>
+  <!-- Nút tạo email và hộp kết quả -->
+  <div class="flex-col">
+    <button class="button-wide" onclick="generateEmail()">Tạo và sao chép email</button>
+    <textarea id="emailBox" class="textarea-small" placeholder="Email sẽ hiển thị ở đây..." readonly></textarea>
+  </div>
 
-  <label>Loại hậu tố:</label><br>
-  <select id="suffixType">
-    <option value="0">Không hậu tố</option>
-    <option value="1">1 số ngẫu nhiên</option>
-    <option value="2">2 số ngẫu nhiên</option>
-    <option value="3">3 số ngẫu nhiên</option>
-    <option value="4">4 số ngẫu nhiên</option>
-    <option value="birthyear">Năm sinh</option>
-  </select><br><br>
+  <!-- Chọn cấu trúc email và loại hậu tố -->
+  <div class="flex-row">
+    <div class="flex-col full-width">
+      <label for="structureType">Cấu trúc email:</label>
+      <select id="structureType" class="full-width">
+        <option value="nameSuffix">Tên + Hậu tố</option>
+        <option value="nameLastSuffix">Tên + Họ + Hậu tố</option>
+      </select>
+    </div>
+    <div class="flex-col full-width">
+      <label for="suffixType">Loại hậu tố:</label>
+      <select id="suffixType" class="full-width">
+        <option value="1">1 số ngẫu nhiên</option>
+        <option value="2">2 số ngẫu nhiên</option>
+        <option value="3">3 số ngẫu nhiên</option>
+        <option value="4">4 số ngẫu nhiên</option>
+        <option value="5">5 số ngẫu nhiên</option>
+        <option value="6">6 số ngẫu nhiên</option>
+        <option value="7">7 số ngẫu nhiên</option>
+        <option value="8">8 số ngẫu nhiên</option>
+        <option value="9">9 số ngẫu nhiên</option>
+        <option value="10">10 số ngẫu nhiên</option>
+        <option value="birthyear">Năm sinh (1980–2003)</option>
+      </select>
+    </div>
+  </div>
 
-  <label>Ký tự ngăn cách (vd: ".", "_", "-"):</label><br>
-  <input type="text" id="separator"><br><br>
+  <!-- Chọn đuôi email và ký tự phân cách -->
+  <div class="flex-row">
+    <div class="flex-col full-width">
+      <label for="domainSelect">Đuôi email:</label>
+      <select id="domainSelect" class="full-width" onchange="toggleCustomInput()">
+        <option value="@gmail.com">@gmail.com</option>
+        <option value="@yahoo.com">@yahoo.com</option>
+        <option value="@outlook.com">@outlook.com</option>
+        <option value="custom">Tùy chỉnh</option>
+      </select>
+    </div>
+    <div class="flex-col full-width">
+      <label for="separator">Kí tự phân cách:</label>
+      <input id="separator" type="text" class="full-width" maxlength="1" placeholder="Ví dụ: -, ., _ hoặc để trống"/>
+    </div>
+  </div>
 
-  <label>Domain cố định:</label><br>
-  <input type="text" id="domain" value="@gmail.com"><br><br>
+  <!-- Tên tùy chọn và đuôi email tùy chỉnh -->
+  <div class="flex-col">
+    <label for="customName">Tên tùy chọn (bỏ trống nếu muốn ngẫu nhiên):</label>
+    <input id="customName" type="text" class="full-width" placeholder="Ví dụ: phantrang"/>
 
-  <label>
-    <input type="checkbox" id="randomOrderCheckbox">
-    Dùng số thứ tự ngẫu nhiên
-  </label><br><br>
+    <div id="customDomainWrapper" style="display:none;">
+      <label for="customDomain">Đuôi email tùy chỉnh:</label>
+      <input id="customDomain" type="text" class="full-width" placeholder="Ví dụ: @tenmien.com"/>
+    </div>
+  </div>
 
-  <button onclick="generateEmails()">Tạo Email</button><br><br>
+  <!-- Phần tạo email ngẫu nhiên với các tùy chọn -->
+  <div class="section">
+    <h3>Tạo Email Ngẫu nhiên với Domain Đa dạng</h3>
+    <div class="note">Email sẽ có dạng: <b>tenhoXXXX@domain</b> (Tên, họ và domain đều random, 4 số cuối ngẫu nhiên)</div>
+    
+    <!-- Thêm các tùy chọn cấu trúc và hậu tố cho email ngẫu nhiên -->
+    <div class="flex-row">
+      <div class="flex-col full-width">
+        <label for="randomStructureType">Cấu trúc email:</label>
+        <select id="randomStructureType" class="full-width">
+          <option value="nameSuffix">Tên + Hậu tố</option>
+          <option value="nameLastSuffix">Tên + Họ + Hậu tố</option>
+        </select>
+      </div>
+      <div class="flex-col full-width">
+        <label for="randomSuffixType">Loại hậu tố:</label>
+        <select id="randomSuffixType" class="full-width">
+          <option value="1">1 số ngẫu nhiên</option>
+          <option value="2">2 số ngẫu nhiên</option>
+          <option value="3">3 số ngẫu nhiên</option>
+          <option value="4">4 số ngẫu nhiên</option>
+          <option value="5">5 số ngẫu nhiên</option>
+          <option value="6">6 số ngẫu nhiên</option>
+          <option value="7">7 số ngẫu nhiên</option>
+          <option value="8">8 số ngẫu nhiên</option>
+          <option value="9">9 số ngẫu nhiên</option>
+          <option value="10">10 số ngẫu nhiên</option>
+          <option value="birthyear">Năm sinh (1980–2003)</option>
+        </select>
+      </div>
+    </div>
 
-  <textarea id="result" rows="15" cols="50"></textarea>
+    <!-- Chọn ký tự phân cách cho email ngẫu nhiên -->
+    <div class="flex-row">
+      <div class="flex-col full-width">
+        <label for="randomSeparator">Kí tự phân cách:</label>
+        <input id="randomSeparator" type="text" class="full-width" maxlength="1" placeholder="Ví dụ: -, ., _ hoặc để trống"/>
+      </div>
+    </div>
+
+    <!-- Tùy chọn số thứ tự cho hậu tố ngẫu nhiên -->
+    <div class="flex-col">
+      <label for="useSequentialSuffix">Sử dụng hậu tố theo thứ tự:</label>
+      <input type="checkbox" id="useSequentialSuffix" />
+      <small>(Nếu được chọn, hậu tố sẽ là số từ 001 đến 999)</small>
+    </div>
+
+    <button class="full-width" onclick="generateRandomEmail()">Tạo và sao chép email ngẫu nhiên</button>
+    <textarea id="randomEmailBox" class="textarea-small" placeholder="Email sẽ hiển thị ở đây..." readonly></textarea>
+  </div>
 
   <script>
+    const emailDomains = [
+      "abbiee.com","pricee.com","altadiagnosticos.com.br","umn.edu","abrasel.com.br","adazing.com","puma.com"
+      // (Thêm các domain khác ở đây)
+    ];
+
+    const firstNames = [
+      'an','bao','chau','dung','hai','khanh','lam','minh','nam','phuc','quan','son','tai','tuan','viet','vinh',
+      'anh','bich','diem','hanh','hoa','huong','lan','linh','mai','ngoc','phuong','thao','trang','tuyet',
+      'john','emily','michael','sarah','robert','jessica','daniel','laura','kevin','megan','joshua','sophia',
+      'ryan','chloe','andrew','amanda','james','olivia','ethan','grace','liam','emma','noah','isabella',
+      'carlos','jose','luis','juan','miguel','pedro','diego','alejandro','manuel','javier','antonio','rafael',
+      'francisco','eduardo','sergio','andres','pablo','roberto','daniel','angel','mario','alberto','jesus',
+      'enrique','adrian','martin','lucia','maria','sofia','paula','carmen','laura','ana','elena','patricia',
+      'alex','charlotte','lucas','mason','logan','benjamin','jacob','william','elijah','alexander','henry',
+      'sebastian','jackson','avery','scarlett','madison','ella','abigail','lily','natalie','zoe','victoria',
+      'hannah','penelope','layla','camila','nora','stella','maya','leah','hazel','ellie','samantha','savannah',
+      'audrey','brooklyn','bella','claire','skylar','lucy','paisley','everly','anna','carter','jayden',
+      'gabriel','julian','mateo','isaac','leo','joseph','david','matthew','samuel','anthony','isaiah',
+      'johnny','santiago','christopher','joshua','andrew','theodore','caleb','ryder','nathan','isaac',
+      'giovanni','giuseppe','antonio','francesco','marco','luigi','alessandro','andrea','lorenzo','matteo',
+      'davide','mattia','giulia','sofia','martina','chiara','sara','francesca','alessia','aurora','alice',
+      'ginevra','greta','beatrice','emma','leo','paul','julien','antoine','lucas','maxime','nicolas','hugo',
+      'gabriel','arthur','louis','raphael','emma','lea','chloe','manon','jade','alice','rose','anna','lina',
+      'mila','lina','lea','louis','noah','emil','jonas','leon','ben','paul','finn','luca','max','felix',
+      'anna','mia','emma','hannah','sofia','lina','lisa','marie','leonie','lara'
+    ];
+
+    const lastNames = [
+      'nguyen','tran','le','pham','hoang','huynh','phan','vu','vo','dang','bui','do','ho','ngo','duong',
+      'ly','truong','luu','trinh','cao','chau','mac','tan','mai','phung','ton','vuong','trieu','luong',
+      'smith','johnson','williams','brown','jones','garcia','miller','davis','martinez','hernandez','lopez',
+      'gonzalez','wilson','anderson','thomas','taylor','moore','jackson','martin','lee','perez','thompson',
+      'white','harris','clark','lewis','robinson','walker','young','allen','king','wright','scott','torres',
+      'hill','flores','green','adams','nelson','baker','hall','rivera','campbell','mitchell','carter',
+      'rodriguez','fernandez','jimenez','moreno','romero','munoz','alvarez','torres','gutierrez','garcia',
+      'castro','mora','silva','rojas','arias','castillo','costa','dias','ferreira','gomes','goncalves',
+      'lima','marques','martins','mendes','oliveira','pereira','rodrigues','santos','soares','souza',
+      'torres','hill','flores','green','adams','nelson','baker','hall','rivera','campbell','mitchell',
+      'carter','roberts','gomez','phillips','evans','turner','diaz','parker','cruz','edwards','collins',
+      'reyes','stewart','morris','morales','murphy','cook','rogers','gutierrez','ortiz','morgan','cooper',
+      'peterson','bailey','reed','kelly','howard','ramirez','kim','cox','ward','richardson','watson',
+      'brooks','chavez','wood','james','bennett','gray','mendoza','ruiz','hughes','price','alvarez',
+      'castillo','sanders','patel','myers','long','ross','foster','jimenez','powell','jenkins','perry',
+      'russell','sullivan','bell','coleman','butler','henderson','barnes','gonzales','fisher','vasquez',
+      'simmons','romero','jordan','patterson','alexander','hamilton','graham','reynolds','griffin',
+      'wallace','moreno','west','cole','hayes','bryant','herrera','gibson','ellis','tran','medina',
+      'aguilar','stevens','murray','ford','castro','marshall','owens','harrison','fernandez','mcdonald',
+      'woods','washington','kennedy','wells','vargas','henry','chen','freeman','webb','tucker','guzman',
+      'burns','crawford','olson','simpson','porter','hunter','gordon','mendez','silva','shaw','snyder',
+      'mason','dixon','munoz','hunt','hicks','holmes','palmer','wagner','black','robertson','boyd',
+      'rose','stone','salazar','fox','warren','mills','meyer','rice','schmidt','garza','daniels',
+      'fletcher','wheeler','chavez','sims','austin','peters','kelley','franklin','lawson','fields',
+      'gutierrez','ryan','schneider','carroll','ruiz','rodriguez','morales','ramirez','torres','flores',
+      'rojas','gomez','soto','mendez','castillo','ortega','vargas','ibanez','navarro','alvarez','cabrera',
+      'hernandez','salinas','herrera','guerra','pena','ramos','perez','sanchez','lopez','gonzalez',
+      'martinez','rodriguez','fernandez','jimenez','moreno','romero','munoz','alvarez','torres','gutierrez',
+      'garcia','castro','mora','silva','rojas','arias','castillo','costa','dias','ferreira','gomes',
+      'goncalves','lima','marques','martins','mendes','oliveira','pereira','rodrigues','santos','soares',
+      'souza','teixeira','almeida','barbosa','cardoso','carvalho','correia','fonseca','freitas','machado',
+      'matos','monteiro','nascimento','pinto','reis','resende','ribeiro','sousa','vieira','alves','araujo',
+      'baptista','bastos','campos','castro','coelho','cunha','domingues','esteves','faria','figueiredo',
+      'franco','lopes','magalhaes','maia','melo','miranda','moreira','neves','nunes','paiva','pires',
+      'ramos','saraiva','sousa','tavares','valente','vasconcelos','vaz','viana','viegas'
+    ];
+
+    let sequentialNumber = 1; // Biến để theo dõi số thứ tự cho hậu tố
+
     function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
 
-    function generateEmails() {
-      var name = document.getElementById("name").value.trim();
-      var count = parseInt(document.getElementById("count").value);
-      var suffixType = document.getElementById("suffixType").value;
-      var separator = document.getElementById("separator").value;
-      var domain = document.getElementById("domain").value.trim();
-      var useRandomOrder = document.getElementById("randomOrderCheckbox").checked;
+    function toggleCustomInput() {
+      const select = document.getElementById("domainSelect");
+      const wrapper = document.getElementById("customDomainWrapper");
+      wrapper.style.display = select.value === "custom" ? "block" : "none";
+    }
 
-      var emails = [];
+    function getSelectedDomain() {
+      const select = document.getElementById("domainSelect");
+      if (select.value === "custom") {
+        let custom = document.getElementById("customDomain").value.trim();
+        if (!custom.startsWith("@")) custom = "@" + custom;
+        return custom;
+      }
+      return select.value;
+    }
 
-      for (var i = 0; i < count; i++) {
-        var email = name;
-        var suffix = "";
+    function generateEmail() {
+      const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const customName = document.getElementById("customName").value.trim().toLowerCase();
+      let separator = document.getElementById("separator").value.trim();
+      if (separator.length > 1) separator = separator.charAt(0);
 
-        if (suffixType === "birthyear") {
-          suffix = getRandomInt(1980, 2003);
-        } else if (suffixType !== "0") {
-          var digits = parseInt(suffixType);
-          if (useRandomOrder) {
-            var min = Math.pow(10, digits - 1);
-            var max = Math.pow(10, digits) - 1;
-            suffix = getRandomInt(min, max);
-          } else {
-            for (var j = 0; j < digits; j++) {
-              suffix += getRandomInt(0, 9).toString();
-            }
-          }
+      const suffixType = document.getElementById("suffixType").value;
+      let suffix = "";
+
+      if (suffixType === "birthyear") {
+        suffix = getRandomInt(1980, 2003);
+      } else {
+        const numDigits = parseInt(suffixType);
+        for (let i = 0; i < numDigits; i++) {
+          suffix += getRandomInt(0, 9).toString();
         }
-
-        if (suffix) {
-          email += separator + suffix;
-        }
-
-        email += domain;
-        emails.push(email.toLowerCase());
       }
 
-      document.getElementById("result").value = emails.join("\n");
+      const domain = getSelectedDomain();
+      const structureType = document.getElementById("structureType").value;
+      let name = "";
+
+      if (structureType === "nameSuffix") {
+        name = customName || first;
+      } else if (structureType === "nameLastSuffix") {
+        name = customName || (first + separator + last);
+      }
+
+      const email = name + separator + suffix + domain;
+
+      const box = document.getElementById("emailBox");
+      box.value = email;
+      box.focus();
+      box.select();
+      document.execCommand("copy");
+      box.blur();
+    }
+
+    function generateRandomEmail() {
+      const first = firstNames[Math.floor(Math.random() * firstNames.length)];
+      const last = lastNames[Math.floor(Math.random() * lastNames.length)];
+      const customName = document.getElementById("randomCustomName").value.trim().toLowerCase();
+      let separator = document.getElementById("randomSeparator").value.trim();
+      if (separator.length > 1) separator = separator.charAt(0);
+
+      const suffixType = document.getElementById("randomSuffixType").value;
+      let suffix = "";
+
+      const useSequentialSuffix = document.getElementById("useSequentialSuffix").checked;
+
+      if (useSequentialSuffix) {
+        // Sử dụng số thứ tự cho hậu tố
+        suffix = String(sequentialNumber).padStart(3, '0'); // Đảm bảo định dạng 3 chữ số
+        sequentialNumber++;
+        if (sequentialNumber > 999) sequentialNumber = 1; // Quay lại nếu vượt quá 999
+      } else {
+        if (suffixType === "birthyear") {
+          suffix = getRandomInt(1980, 2003);
+        } else {
+          const numDigits = parseInt(suffixType);
+          for (let i = 0; i < numDigits; i++) {
+            suffix += getRandomInt(0, 9).toString();
+          }
+        }
+      }
+
+      const domain = emailDomains[Math.floor(Math.random() * emailDomains.length)];
+      const structureType = document.getElementById("randomStructureType").value;
+      let name = "";
+
+      if (structureType === "nameSuffix") {
+        name = customName || first;
+      } else if (structureType === "nameLastSuffix") {
+        name = customName || (first + separator + last);
+      }
+
+      const email = name + separator + suffix + "@" + domain;
+
+      const box = document.getElementById("randomEmailBox");
+      box.value = email;
+      box.focus();
+      box.select();
+      document.execCommand("copy");
+      box.blur();
     }
   </script>
 </body>
