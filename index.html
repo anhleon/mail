@@ -39,15 +39,14 @@
       <label for="suffixType">Loại hậu tố:</label>
       <select id="suffixType" class="full-width">
         <option value="1">1 số ngẫu nhiên</option>
-        <option value="2">2 số ngẫu nhiên</option>
-        <option value="3">3 số ngẫu nhiên</option>
-        <option value="4">4 số ngẫu nhiên</option>
-        <option value="5">5 số ngẫu nhiên</option>
-        <option value="6">6 số ngẫu nhiên</option>
-        <option value="7">7 số ngẫu nhiên</option>
-        <option value="8">8 số ngẫu nhiên</option>
-        <option value="9">9 số ngẫu nhiên</option>
-        <option value="10">10 số ngẫu nhiên</option>
+        <option value="2">2 số theo thứ tự</option>
+        <option value="3">3 số theo thứ tự</option>
+        <option value="4">4 số theo thứ tự</option>
+        <option value="5">5 số theo thứ tự</option>
+        <option value="6">6 số theo thứ tự</option>
+        <option value="7">7 số theo thứ tự</option>
+        <option value="8">8 số theo thứ tự</option>
+        <option value="9">9 số theo thứ tự</option>
         <option value="birthyear">Năm sinh (1980–2003)</option>
       </select>
     </div>
@@ -121,13 +120,6 @@
       </div>
     </div>
 
-    <!-- Tùy chọn số thứ tự cho hậu tố ngẫu nhiên -->
-    <div class="flex-col">
-      <label for="useSequentialSuffix">Sử dụng hậu tố theo thứ tự:</label>
-      <input type="checkbox" id="useSequentialSuffix" />
-      <small>(Nếu được chọn, hậu tố sẽ là số từ 001 đến 999)</small>
-    </div>
-
     <button class="full-width" onclick="generateRandomEmail()">Tạo và sao chép email ngẫu nhiên</button>
     <textarea id="randomEmailBox" class="textarea-small" placeholder="Email sẽ hiển thị ở đây..." readonly></textarea>
   </div>
@@ -198,6 +190,8 @@
       'ramos','saraiva','sousa','tavares','valente','vasconcelos','vaz','viana','viegas'
     ];
 
+    let sequentialNumber = 1; // Biến để theo dõi số thứ tự cho hậu tố
+
     function getRandomInt(min, max) {
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
@@ -230,6 +224,10 @@
 
       if (suffixType === "birthyear") {
         suffix = getRandomInt(1980, 2003);
+      } else if (suffixType >= 2 && suffixType <= 9) {
+        suffix = String(sequentialNumber).padStart(suffixType, '0'); // Tạo hậu tố theo thứ tự và định dạng
+        sequentialNumber++;
+        if (sequentialNumber > 999) sequentialNumber = 1; // Quay lại nếu vượt quá 999
       } else {
         const numDigits = parseInt(suffixType);
         for (let i = 0; i < numDigits; i++) {
